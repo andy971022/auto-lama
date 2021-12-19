@@ -1,0 +1,3 @@
+[submodule "lama"]
+	path = lama
+	url = https://github.com/saic-mdal/lama
