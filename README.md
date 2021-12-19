@@ -5,6 +5,11 @@ Auto-Lama combines object detection and image inpainting to automate object remo
 1. Masks are generated based on the bounding boxes drawn by the detector.
 1. The original image is sent to the inpainter along with the masks.
 
+## Demo
+![cat](./docs/images/cat.gif)
+![buildings](./docs/images/buildings.gif)
+![park](./docs/images/park.gif)
+
 ## Masking
 
 There are currently a few ways of generating masks:
