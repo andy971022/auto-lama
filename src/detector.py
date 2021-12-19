@@ -4,11 +4,12 @@ import glob
 import argparse
 
 import torch
-from torchvision.utils import draw_bounding_boxes
 from torchvision.io import decode_image
 from torchvision import transforms
 from transformers import AutoFeatureExtractor, AutoModelForObjectDetection
 from PIL import Image, ImageDraw
+
+from src.const import PARAMETERS
 
 
 class Detector(object):
@@ -32,12 +33,12 @@ class Detector(object):
             kwargs.get("resize", True),
             kwargs.get("resize_scale", 0.75),
         )
-        self.non_object = kwargs.get(
-            "non_object", 91
+        self.excluded_objects = kwargs.get(
+            "excluded_objects", [91]
         )  # for COCO dataset that detr is using
         self.image_format = kwargs.get("image_format", "PNG")
 
-        self.feature_extract = AutoFeatureExtractor.from_pretrained(self.model_name)
+        self.feature_extractor = AutoFeatureExtractor.from_pretrained(self.model_name)
         self.object_detector = AutoModelForObjectDetection.from_pretrained(
             self.model_name
         )
@@ -45,6 +46,9 @@ class Detector(object):
 
     def _predict(self, image_path):
         self.image_path = image_path
+        self.image_save_name = os.path.basename(self.image_path).split(".")[
+            0
+        ]  # Get only file name without extension
         if image_path.startswith("http"):
             self.image = Image.open(requests.get(self.image_path, stream=True).raw)
         else:
@@ -69,10 +73,10 @@ class Detector(object):
 
     def _get_image_size(self):
         self.width, self.height = self.image.size
-        print("Width: {self.width}, Height: {self.height}")
+        print(f"Width: {self.width}, Height: {self.height}")
 
     def _get_objects(self, logits, bboxes):
-        self.obejcts = []
+        self.objects = []
 
         # To show the detected objects
         image_copy = self.image.copy()
@@ -84,15 +88,15 @@ class Detector(object):
         self.this_image_mask = self.complementary_image_mask.copy()
 
         drw = ImageDraw.Draw(image_copy)
-        drw_complementary_image_mask = ImageDraw.Draw(complementary_image_mask)
+        drw_complementary_image_mask = ImageDraw.Draw(self.complementary_image_mask)
 
         for index, (logit, box) in enumerate(zip(logits[0], bboxes[0])):
             proba = logit.softmax(-1)  # getting the confidence score
             cls = logit.argmax()  # item index
-            if cls in [91] or proba[cls] < self.threshold:
+            if cls in self.excluded_objects or proba[cls] < self.threshold:
                 continue  # skip if
 
-            box = box * torch.tensor([self.width, self.height, self.width, self.hegiht])
+            box = box * torch.tensor([self.width, self.height, self.width, self.height])
             x, y, w, h = box
 
             x0, x1, y0, y1 = x - w // 2, x + w // 2, y - h // 2, y + h // 2
@@ -117,11 +121,11 @@ class Detector(object):
             self.image_format,
         )
         self.image.save(
-            f"{self.save_destination}/{self.image_path}_complementary.{self.image_format.lower()}",
+            f"{self.save_destination}/{self.image_save_name}_complementary.{self.image_format.lower()}",
             self.image_format,
         )
         self.image.save(
-            f"{self.save_destination}/{self.image_path}_this.{self.image_format.lower()}",
+            f"{self.save_destination}/{self.image_save_name}_this.{self.image_format.lower()}",
             self.image_format,
         )
 
@@ -132,25 +136,25 @@ class Detector(object):
                 self.complementary_image_mask.copy(),
             )
 
-            drw_this_image_mask, drw_other_image_mask = (
-                Image.Draw(this_image_mask),
+            drw_this_image_mask, drw_complementary_image_mask = (
+                ImageDraw.Draw(this_image_mask),
                 ImageDraw.Draw(complementary_image_mask),
             )
             drw_this_image_mask.rectangle(obj["box"], fill=(255, 255, 255))
             drw_complementary_image_mask.rectangle(obj["box"], fill=(0, 0, 0))
 
             this_image_mask.save(
-                f"{self.save_destination}/{self.image_path}_this_mask{index:03d}.{self.image_format.lower()}",
+                f"{self.save_destination}/{self.image_save_name}_this_mask{index:03d}.{self.image_format.lower()}",
                 self.image_format,
             )
-            drw_complementary_image_mask.save(
-                f"{self.save_destination}/{self.image_path}_complementary_mask{index:03d}.{self.image_format.lower()}",
+            complementary_image_mask.save(
+                f"{self.save_destination}/{self.image_save_name}_complementary_mask{index:03d}.{self.image_format.lower()}",
                 self.image_format,
             )
 
     def _create_directory(self):
         for directory in [self.save_destination, self.output_destination]:
-            if not os.path.exists():
+            if not os.path.exists(directory):
                 os.makedirs(directory)
 
     def process(self, image_path):
@@ -161,13 +165,15 @@ class Detector(object):
         self._masking()
 
 
-if __name__ == '__main__':
+if __name__ == "__main__":
     parser = argparse.ArgumentParser()
-    parser.add_argument("--image_path", type=str, default="http://images.cocodataset.org/val2017/000000039769.jpg")
+    parser.add_argument(
+        "--image_path",
+        type=str,
+        default="http://images.cocodataset.org/val2017/000000039769.jpg",
+    )
 
     args = parser.parse_args()
 
-    kwargs = {}
-
-    detector = Detector(**kwargs)
-    detector.process(image)
+    detector = Detector(**PARAMETERS)
+    detector.process(args.image_path)
