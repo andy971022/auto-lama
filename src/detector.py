@@ -133,27 +133,6 @@ class Detector(object):
         )
 
     def _masking(self):
-        for index, obj in enumerate(self.objects):
-            this_image_mask, complementary_image_mask = (
-                self.this_image_mask.copy(),
-                self.complementary_image_mask.copy(),
-            )
-
-            drw_this_image_mask, drw_complementary_image_mask = (
-                ImageDraw.Draw(this_image_mask),
-                ImageDraw.Draw(complementary_image_mask),
-            )
-            drw_this_image_mask.rectangle(obj["box"], fill=(255, 255, 255))
-            drw_complementary_image_mask.rectangle(obj["box"], fill=(0, 0, 0))
-
-            this_image_mask.save(
-                f"{self.save_destination}/{self.image_save_name}_this_mask{index:03d}.{self.image_format.lower()}",
-                self.image_format,
-            )
-            complementary_image_mask.save(
-                f"{self.save_destination}/{self.image_save_name}_complementary_mask{index:03d}.{self.image_format.lower()}",
-                self.image_format,
-            )
 
         if self.mask_target_items:
             target_image_masks = defaultdict(dict)
@@ -179,6 +158,31 @@ class Detector(object):
                     f"{self.save_destination}/{self.image_save_name}_target_{obj_cls}_mask{index:03d}.{self.image_format.lower()}",
                     self.image_format,
                 )
+
+        else: 
+            for index, obj in enumerate(self.objects):
+                this_image_mask, complementary_image_mask = (
+                    self.this_image_mask.copy(),
+                    self.complementary_image_mask.copy(),
+                )
+
+                drw_this_image_mask, drw_complementary_image_mask = (
+                    ImageDraw.Draw(this_image_mask),
+                    ImageDraw.Draw(complementary_image_mask),
+                )
+                drw_this_image_mask.rectangle(obj["box"], fill=(255, 255, 255))
+                drw_complementary_image_mask.rectangle(obj["box"], fill=(0, 0, 0))
+
+                this_image_mask.save(
+                    f"{self.save_destination}/{self.image_save_name}_this_mask{index:03d}.{self.image_format.lower()}",
+                    self.image_format,
+                )
+                complementary_image_mask.save(
+                    f"{self.save_destination}/{self.image_save_name}_complementary_mask{index:03d}.{self.image_format.lower()}",
+                    self.image_format,
+                )
+
+
 
     def _create_directory(self):
         for directory in [self.save_destination, self.output_destination]:

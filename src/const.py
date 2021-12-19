@@ -1,7 +1,7 @@
 PARAMETERS = {
     "model_name": "facebook/detr-resnet-50",
     "threshold": 0.9,
-    "max_items": 10,
+    "max_items": 30,
     "save_destination": "./test_images",
     "output_destination": "./output_images",
     "max_width": 2000,
