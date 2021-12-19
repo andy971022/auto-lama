@@ -117,7 +117,7 @@ class Detector(object):
             )  # White masking
 
         image_copy.save(
-            f"{self.save_destination}/detected.{self.image_format.lower()}",
+            f"{self.save_destination}/{self.image_save_name}_detected.{self.image_format.lower()}",
             self.image_format,
         )
         self.image.save(
