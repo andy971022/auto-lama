@@ -52,6 +52,8 @@ PARAMETERS = {
 }
 ```
 
+Please reference [here](https://tech.amikelive.com/node-718/what-object-categories-labels-are-in-coco-dataset/) for the target items that you want to mask, as the default DE:TR uses the COCO Dataset, 
+
 ## Run
 1. `make detect_and_inpaint IMAGE_PATH=path/to/image` or `make detect_and_inpaint IMAGE_PATH={image_url}`
 
