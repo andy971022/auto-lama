@@ -163,18 +163,22 @@ class Detector(object):
                     self.image_format,
                 )
                 target_image_masks[obj_cls]["background"] = self.black_background.copy()
-                target_image_masks[obj_cls]["painter"] = ImageDraw.Draw(target_image_masks[obj_cls]["background"])
+                target_image_masks[obj_cls]["painter"] = ImageDraw.Draw(
+                    target_image_masks[obj_cls]["background"]
+                )
 
             # Mask only target items
             for index, obj in enumerate(self.objects):
                 if obj["cls"] in self.mask_target_items:
-                    target_image_masks[int(obj["cls"])]["painter"].rectangle(obj["box"], fill=(255, 255, 255))
+                    target_image_masks[int(obj["cls"])]["painter"].rectangle(
+                        obj["box"], fill=(255, 255, 255)
+                    )
 
             for index, obj_cls in enumerate(self.mask_target_items):
                 target_image_masks[obj_cls]["background"].save(
-                f"{self.save_destination}/{self.image_save_name}_target_{obj_cls}_mask{index:03d}.{self.image_format.lower()}",
-                self.image_format,
-            )
+                    f"{self.save_destination}/{self.image_save_name}_target_{obj_cls}_mask{index:03d}.{self.image_format.lower()}",
+                    self.image_format,
+                )
 
     def _create_directory(self):
         for directory in [self.save_destination, self.output_destination]:

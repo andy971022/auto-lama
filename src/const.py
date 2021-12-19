@@ -10,5 +10,5 @@ PARAMETERS = {
     "resize_scale": 0.75,
     "excluded_objects": [91],
     "image_format": "PNG",
-    "mask_target_items": [75],
+    "mask_target_items": [1],
 }
