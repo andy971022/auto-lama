@@ -136,15 +136,17 @@ class Detector(object):
 
         if self.mask_target_items:
             target_image_masks = defaultdict(dict)
-            for obj_cls in self.mask_target_items:
-                self.image.save(
-                    f"{self.save_destination}/{self.image_save_name}_target_{obj_cls}.{self.image_format.lower()}",
-                    self.image_format,
-                )
-                target_image_masks[obj_cls]["background"] = self.black_background.copy()
-                target_image_masks[obj_cls]["painter"] = ImageDraw.Draw(
-                    target_image_masks[obj_cls]["background"]
-                )
+            for index, obj in enumerate(self.objects):
+                if obj["cls"] in self.mask_target_items:
+                    obj_cls = int(obj["cls"])
+                    self.image.save(
+                        f"{self.save_destination}/{self.image_save_name}_target_{obj_cls}.{self.image_format.lower()}",
+                        self.image_format,
+                    )
+                    target_image_masks[obj_cls]["background"] = self.black_background.copy()
+                    target_image_masks[obj_cls]["painter"] = ImageDraw.Draw(
+                        target_image_masks[obj_cls]["background"]
+                    )
 
             # Mask only target items
             for index, obj in enumerate(self.objects):
@@ -153,7 +155,7 @@ class Detector(object):
                         obj["box"], fill=(255, 255, 255)
                     )
 
-            for index, obj_cls in enumerate(self.mask_target_items):
+            for index, obj_cls in enumerate(target_image_masks):
                 target_image_masks[obj_cls]["background"].save(
                     f"{self.save_destination}/{self.image_save_name}_target_{obj_cls}_mask{index:03d}.{self.image_format.lower()}",
                     self.image_format,
