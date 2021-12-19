@@ -2,6 +2,7 @@ import requests
 import os
 import glob
 import argparse
+from collections import defaultdict
 
 import torch
 from torchvision.io import decode_image
@@ -36,6 +37,7 @@ class Detector(object):
         self.excluded_objects = kwargs.get(
             "excluded_objects", [91]
         )  # for COCO dataset that detr is using
+        self.mask_target_items = kwargs.get("mask_target_items", [])
         self.image_format = kwargs.get("image_format", "PNG")
 
         self.feature_extractor = AutoFeatureExtractor.from_pretrained(self.model_name)
@@ -80,12 +82,13 @@ class Detector(object):
 
         # To show the detected objects
         image_copy = self.image.copy()
+        # Black Background
+        self.black_background = Image.new("RGB", (self.width, self.height), (0, 0, 0))
+
         # Background for masking all other items
-        self.complementary_image_mask = Image.new(
-            "RGB", (self.width, self.height), (0, 0, 0)
-        )  # Black
+        self.complementary_image_mask = self.black_background.copy()
         # Background for masking just this item
-        self.this_image_mask = self.complementary_image_mask.copy()
+        self.this_image_mask = self.black_background.copy()
 
         drw = ImageDraw.Draw(image_copy)
         drw_complementary_image_mask = ImageDraw.Draw(self.complementary_image_mask)
@@ -152,6 +155,27 @@ class Detector(object):
                 self.image_format,
             )
 
+        if self.mask_target_items:
+            target_image_masks = defaultdict(dict)
+            for obj_cls in self.mask_target_items:
+                self.image.save(
+                    f"{self.save_destination}/{self.image_save_name}_target_{obj_cls}.{self.image_format.lower()}",
+                    self.image_format,
+                )
+                target_image_masks[obj_cls]["background"] = self.black_background.copy()
+                target_image_masks[obj_cls]["painter"] = ImageDraw.Draw(target_image_masks[obj_cls]["background"])
+
+            # Mask only target items
+            for index, obj in enumerate(self.objects):
+                if obj["cls"] in self.mask_target_items:
+                    target_image_masks[int(obj["cls"])]["painter"].rectangle(obj["box"], fill=(255, 255, 255))
+
+            for index, obj_cls in enumerate(self.mask_target_items):
+                target_image_masks[obj_cls]["background"].save(
+                f"{self.save_destination}/{self.image_save_name}_target_{obj_cls}_mask{index:03d}.{self.image_format.lower()}",
+                self.image_format,
+            )
+
     def _create_directory(self):
         for directory in [self.save_destination, self.output_destination]:
             if not os.path.exists(directory):
@@ -174,6 +198,8 @@ if __name__ == "__main__":
     )
 
     args = parser.parse_args()
+
+    print(PARAMETERS)
 
     detector = Detector(**PARAMETERS)
     detector.process(args.image_path)
