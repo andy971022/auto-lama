@@ -4,6 +4,7 @@ CONDA_ENV_NAME=auto-lama
 
 create-env:
 	conda env export -n $(CONDA_ENV_NAME) > conda_env.yml
+	pip list --format=freeze > requirements.txt
 
 build-env:
 	conda env remove --name $(CONDA_ENV_NAME)
