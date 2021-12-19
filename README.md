@@ -1,14 +1,20 @@
 # Auto-Lama
-Auto-Lama combines object detection and image inpainting to automate object removals. It is build on top of DE:TR from Facebook Research and Lama from Samsung AI. The entire process is extremely simple:
+Auto-Lama combines object detection and image inpainting to automate object removals. It is build on top of [DE:TR](https://github.com/facebookresearch/detr) from Facebook Research and [Lama](https://github.com/saic-mdal/lama) from Samsung Research. The entire process is extremely simple:
 
 1. Objects are detected using the detector.
 1. Masks are generated based on the bounding boxes drawn by the detector.
 1. The original image is sent to the inpainter along with the masks.
 
+## Masking
+
 There are currently a few ways of generating masks:
 1. Masking objects with specified indices.
 1. Masking one main object at a time.
 1. Masking all other objects other than the main object.
+
+## Future Goals
+1. Use a more precise segmentation method other than bounding boxes
+1. Implementing a detector that has more
 
 # Environment Setup
 
