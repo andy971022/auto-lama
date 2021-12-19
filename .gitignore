@@ -154,3 +154,5 @@ cython_debug/
 # Custom
 test_images/
 output_images/
+lama/
+big-lama.zip
