@@ -13,3 +13,6 @@ build-env:
 
 detect_and_inpaint:
 	bash scripts/detect_and_inpaint.sh $(IMAGE_PATH)
+
+clean:
+	git clean -fx
