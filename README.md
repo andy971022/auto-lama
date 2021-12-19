@@ -29,9 +29,9 @@ There are currently a few ways of generating masks:
 1. `conda`
 
 ## Building Environment
-1.`make build-conda-env`
-1.`conda activate auto-lama`
-1.`make build-env`
+1. `make build-conda-env`
+1. `conda activate auto-lama`
+1. `make build-env`
 
 ## Cleaning Directory
 1. `make clean`
